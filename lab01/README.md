@@ -1,4 +1,4 @@
-#  Lab XX
+#  Lab XX - Introduction
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 
@@ -10,34 +10,37 @@ and
 
 1.  Setup
 
-    -   Edit file ``~/.bashrc.local`` to contain the line\
-        ``source /apps/timo/startup.sh``\
+    -   Edit file ``~/.bashrc`` to contain the line\
+        ``source /scratch/smr2909/enable.sh``\
         and close and re-open your terminal. You can use
         ``gedit ~/.bashrc.local``\
-        Check that this worked by typing ``echo $DEAL_II_DIR``
+	To open an editor. Check that this worked by typing ``echo $DEAL_II_DIR``\
+	You should see ``/scratch/smr2909/deal.II/install`` printed to the screen.
 
-    -   Please note:
+    -   Please note, inside ``/scratch/smr2909/`` there are the following folders:
 
-        -   ``/apps/timo/`` – files for the lecture, script to set up your
-            environment, some tools
+    	- ``labs/`` -- a folder with exercise sheets and example programs
 
-        -   ``/apps/timo/examples/`` – selected collection of example
-            programs
+        - ``bin/`` and ``apps/`` -- several programs (you shouldn't need to
+          access them directly, because they will be imported into your PATH
+          automatically)
 
-        -   ``/apps/timo/documents/`` – slides and labs
+        - ``libs/``, ``candi/``, ``candi-build`` -- libraries deal.II depends
+          on
 
-        -   ``/apps/deal.II/deal.II-dev`` – installation of a current
-            deal.II version
+        - ``deal.II`` -- source, build, and installation of deal.II.
 
-        -   ``/apps/deal.II/deal.II-dev/examples`` – all tutorial programs
+        -   ``deal.II/dealii/examples/`` -- all tutorial programs
 
     -   to make a copy of tutorial 1, configure, compile, and run it:
 
-            cp -r /apps/timo/examples/step-1 ~/
+    	```
+            cp -r /scratch/smr2909/deal.II/dealii/examples/step-1 ~/
             cd ~/step-1
             cmake .
             make
             ./step-1
+	```
 
     -   IDE: open ``qtcreator`` and "open project" and select
         ``CMakeLists.txt``
