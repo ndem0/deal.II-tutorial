@@ -1,4 +1,4 @@
-#  Lab XX - Introduction
+#  Lab 01 - Introduction
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 

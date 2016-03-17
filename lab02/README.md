@@ -1,4 +1,4 @@
-#  Lab XX
+#  Lab 02 - Sparsity Patterns (step-2)
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 

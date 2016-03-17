@@ -1,4 +1,4 @@
-#  Lab XX
+#  Lab XX - Error Computation
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 

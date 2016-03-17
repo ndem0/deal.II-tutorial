@@ -1,4 +1,4 @@
-#  Lab XX
+#  Lab 04 - C++ Templates and Dimension Independence (step-4)
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 
@@ -30,3 +30,4 @@ and
     in ParaView in 2d and 3d.
 
 
+ideas: an example where we require template specialization would be nice
