@@ -1,4 +1,4 @@
-#  Lab XX
+#  Lab XX - Adaptive Refinement
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 
