@@ -71,4 +71,13 @@ and
     8.  Output a mesh as an svg file instead of eps. Open it in a
         browser to display it.
 
+    9.  Generate a circle using GridGenerator::hyper_sphere() in 2d: use a
+        SphericalManifold everywhere, only on the boundary, or on all cells
+        except center and refine the mesh.
+
+   10.  Broken program to debug: (don't make Manifold static)
+   	"forget" to empty a Triangulation before using GridGenerator the second time.
+
+   11.  Load a mesh from a file (debugging task: wrong dimension)
+
 
