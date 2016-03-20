@@ -13,7 +13,8 @@ and
 
 2.  Copy and run step-3.
 
-3.  Switch to vtk output and visualize in paraview.
+3.  Switch to vtk output and visualize in paraview. Figure out how to warp the
+    solution by the solution variable.
 
 4.  Follow the instructions in “Modify the type of boundary condition”
     in the description of the tutorial.
@@ -23,8 +24,10 @@ and
 
 6.  Change the setup to have $f=0$.
 
-7.  Switch to an L-shaped domain, experiment with a combination of
-    Dirichlet and Neumann boundary conditions.
+7.  Switch to an L-shaped domain and experiment with a combination of
+    Dirichlet and Neumann boundary conditions. By experimentation, identify
+    the faces adjacent to the re-entrant corner and apply Dirichlet conditions
+    only there.
 
 8.  Bonus: Do “Convergence of the mean”. Can you see the order $h^2$?
     Increase the polynomial order (you need to increase all orders of
