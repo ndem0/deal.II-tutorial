@@ -11,7 +11,7 @@ and
 1.  See documentation at\
     <https://www.dealii.org/developer/doxygen/deal.II/step_2.html>
 
-2.  Copy and run step-2.
+2.  Copy and run step-2. Look at the sparsity patterns in firefox.
 
 3.  How does the pattern change if you increase the polynomial degree
     from 1 to 2 or to 3?
