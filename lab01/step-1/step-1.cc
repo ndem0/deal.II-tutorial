@@ -30,6 +30,8 @@
 
 using namespace dealii;
 
+template <int T>
+void helper(Triangulation<T> &);
 
 void first_grid ()
 {
@@ -42,23 +44,25 @@ void first_grid ()
   GridOut grid_out;
   grid_out.write_eps (triangulation, out);
   std::cout << "Grid written to grid-1.eps" << std::endl;
+
+  helper(triangulation);
 }
-
-
-
 
 void second_grid ()
 {
-  Triangulation<2> triangulation;
-
   const Point<2> center (1,0);
   const double inner_radius = 0.5,
                outer_radius = 1.0;
+
+  const SphericalManifold<2> manifold_description(center);
+
+  Triangulation<2> triangulation;
+
   GridGenerator::hyper_shell (triangulation,
                               center, inner_radius, outer_radius,
                               10);
+
   triangulation.set_all_manifold_ids(0);
-  const SphericalManifold<2> manifold_description(center);
   triangulation.set_manifold (0, manifold_description);
 
   for (unsigned int step=0; step<5; ++step)
@@ -87,20 +91,95 @@ void second_grid ()
     }
 
 
-  std::ofstream out ("grid-2.eps");
+  std::ofstream out ("grid-2.svg");
   GridOut grid_out;
-  grid_out.write_eps (triangulation, out);
+  grid_out.write_svg (triangulation, out);
 
-  std::cout << "Grid written to grid-2.eps" << std::endl;
+  std::cout << "Grid written to grid-2.svg" << std::endl;
+
+  //triangulation.set_manifold (0);
+
+  helper(triangulation);
+}
+
+
+void third_grid ()
+{
+    Triangulation<2> triangulation;
+
+    const Point<2> center (0,0);
+    const double min_dist = 1./3.;
+
+    GridGenerator::hyper_L (triangulation);
+
+    for (unsigned int step=0; step<3; ++step)
+    {
+        Triangulation<2>::active_cell_iterator
+                cell = triangulation.begin_active(),
+                endc = triangulation.end();
+        for (; cell!=endc; ++cell)
+        {
+            for (unsigned int v=0;
+                 v < GeometryInfo<2>::vertices_per_cell;
+                 ++v)
+            {
+                const double distance_from_center
+                        = center.distance (cell->vertex(v));
+
+                //std::cout << distance_from_center << std::endl;
+                if (std::fabs(distance_from_center) < min_dist)
+                {
+                    cell->set_refine_flag ();
+                    break;
+                }
+            }
+        }
+
+        triangulation.execute_coarsening_and_refinement ();
+    }
+
+    std::ofstream out ("grid-3.vtk");
+    GridOut grid_out;
+    grid_out.write_vtk (triangulation, out);
+    std::cout << "Grid written to grid-3.eps" << std::endl;
+
+    helper(triangulation);
+}
+
+void fourth_grid ()
+{
+  Triangulation<2,3> triangulation;
+
+  static SphericalManifold<2,3> surface_description;
+
+  GridGenerator::hyper_sphere(triangulation);
+
+  triangulation.set_all_manifold_ids_on_boundary(0);
+  triangulation.set_manifold (0, surface_description);
+  triangulation.refine_global(2);
+
+
+  std::ofstream out ("grid-4.vtk");
+  GridOut grid_out;
+  grid_out.write_vtk (triangulation, out);
+
+  std::cout << "Grid written to grid-4.vtk" << std::endl;
 
   triangulation.set_manifold (0);
 }
 
-
-
+template <int T>
+void helper(Triangulation<T> &triag)
+{
+    std::cout << "Number of levels: " << triag.n_levels() << std::endl;
+    std::cout << "Number of cells: " << triag.n_cells() << std::endl;
+    std::cout << "Number of active cells: " << triag.n_active_cells() << std::endl;
+}
 
 int main ()
 {
   first_grid ();
   second_grid ();
+  third_grid ();
+  fourth_grid();
 }
