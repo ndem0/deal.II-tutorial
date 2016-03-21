@@ -35,6 +35,8 @@
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/base/quadrature_lib.h>
 
+#include <deal.II/base/function_lib.h>
+
 #include <deal.II/base/function.h>
 #include <deal.II/numerics/vector_tools.h>
 #include <deal.II/numerics/matrix_tools.h>
@@ -91,7 +93,19 @@ Step3::Step3 ()
 
 void Step3::make_grid ()
 {
-  GridGenerator::hyper_cube (triangulation, -1, 1);
+  GridGenerator::hyper_L (triangulation, 0, 1);
+
+  //triangulation.begin_active()->face(0)->set_boundary_id(1);
+
+  // This deals with the boundary conditions on the desired faces
+  // of the hyper-L
+  auto cube = triangulation.begin_active();
+  cube++;
+  cube->face(3)->set_boundary_id(1);
+  cube++;
+  cube->face(1)->set_boundary_id(1);
+
+
   triangulation.refine_global (5);
 
   std::cout << "Number of active cells: "
@@ -160,6 +174,8 @@ void Step3::assemble_system ()
         }
       cell->get_dof_indices (local_dof_indices);
 
+      for(unsigned int i=0; i < cell_rhs.size(); ++i) cell_rhs(i) = 0.0;
+
       for (unsigned int i=0; i<dofs_per_cell; ++i)
         for (unsigned int j=0; j<dofs_per_cell; ++j)
           system_matrix.add (local_dof_indices[i],
@@ -172,10 +188,14 @@ void Step3::assemble_system ()
 
 
   std::map<types::global_dof_index,double> boundary_values;
+
+
   VectorTools::interpolate_boundary_values (dof_handler,
-                                            0,
-                                            ZeroFunction<2>(),
+                                            1,
+                                            Functions::ExpFunction<2>(),
                                             boundary_values);
+
+
   MatrixTools::apply_boundary_values (boundary_values,
                                       system_matrix,
                                       solution,
@@ -202,8 +222,11 @@ void Step3::output_results () const
   data_out.add_data_vector (solution, "solution");
   data_out.build_patches ();
 
-  std::ofstream output ("solution.gpl");
-  data_out.write_gnuplot (output);
+  std::ofstream output1 ("solution.vtk");
+  data_out.write_vtk (output1);
+
+  std::ofstream output2 ("solution.gpl");
+  data_out.write_gnuplot (output2);
 }
 
 
