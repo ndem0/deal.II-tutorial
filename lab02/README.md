@@ -8,8 +8,8 @@ and
 
 * * * * *
 
-1.  See documentation at\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_2.html>
+1.  See documentation at
+    <https://www.dealii.org/8.4.0/doxygen/deal.II/step_2.html>
 
 2.  Copy and run step-2. Look at the sparsity patterns in firefox.
 

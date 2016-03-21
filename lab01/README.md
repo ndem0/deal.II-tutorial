@@ -35,7 +35,7 @@ and
     -   to make a copy of tutorial 1, configure, compile, and run it:
 
     	```
-            cp -r /scratch/smr2909/labs/step-1 ~/
+            cp -r /scratch/smr2909/labs/lab01/step-1 ~/
             cd ~/step-1
             cmake .
             make

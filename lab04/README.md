@@ -8,8 +8,8 @@ and
 
 * * * * *
 
-1.  See documentation of step-4 at\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_4.html>
+1.  See documentation of step-4 at
+    <https://www.dealii.org/8.4.0/doxygen/deal.II/step_4.html>
 
 2.  Write a member function `void mesh_info()` that prints the following
     information about the triangulation to the screen: 1) number of
