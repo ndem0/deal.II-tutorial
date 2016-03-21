@@ -13,7 +13,7 @@ and
     -   Edit file ``~/.bashrc`` to contain the line\
         ``source /scratch/smr2909/enable.sh``\
         and close and re-open your terminal. You can use
-        ``gedit ~/.bashrc.local``\
+        ``gedit ~/.bashrc``\
 	to open an editor. Check that this worked by typing ``echo $DEAL_II_DIR``\
 	You should see ``/scratch/smr2909/deal.II/install`` printed to the screen.
 
@@ -73,7 +73,7 @@ and
         levels, number of cells, number of active cells. Test this with
         all of your meshes.
 
-    9.  Generate a circle using ``GridGenerator::hyper_sphere()`` in 2d: use a
+    9.  Generate a circle using ``GridGenerator::hyper_ball()`` in 2d: use a
         SphericalManifold everywhere, only on the boundary, or on all cells
         except the center cell and refine the mesh globally twice.
 
