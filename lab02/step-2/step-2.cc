@@ -53,6 +53,9 @@ void make_grid (Triangulation<2> &triangulation)
   triangulation.set_all_manifold_ids(0);
   triangulation.set_manifold (0, manifold_description);
 
+  triangulation.refine_global (3);
+
+  /*
   for (unsigned int step=0; step<3; ++step)
     {
       Triangulation<2>::active_cell_iterator
@@ -76,12 +79,14 @@ void make_grid (Triangulation<2> &triangulation)
 
       triangulation.execute_coarsening_and_refinement ();
     }
+    */
+
 }
 
 
 void distribute_dofs (DoFHandler<2> &dof_handler)
 {
-  static const FE_Q<2> finite_element(1);
+  static const FE_Q<2> finite_element(3);
   dof_handler.distribute_dofs (finite_element);
 
   DynamicSparsityPattern dynamic_sparsity_pattern(dof_handler.n_dofs(),
