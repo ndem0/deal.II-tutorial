@@ -91,7 +91,7 @@ double RightHandSide<dim>::value (const Point<dim> &p,
 {
   double x = p(0);
   double y = p(1);
-  return x*y;
+  return 2.0 * numbers::PI * numbers::PI * sin(numbers::PI*x) * cos(numbers::PI*y);
 }
 
 
@@ -105,8 +105,8 @@ public:
   virtual double value (const Point<dim>   &p,
                         const unsigned int  component = 0) const;
 
-//  virtual Tensor<1,dim> gradient (const Point<dim>   &p,
-//                                  const unsigned int  component = 0) const;
+  virtual Tensor<1,dim> gradient (const Point<dim>   &p,
+                                  const unsigned int  component = 0) const;
 };
 
 template <int dim>
@@ -121,18 +121,18 @@ double SolutionValues<dim>::value (const Point<dim> &p,
     return 0.0; // TODO
 }
 
-//template <int dim>
-//Tensor<1,dim> SolutionValues<dim>::gradient (const Point<dim> &p,
-//                                   const unsigned int /*component*/) const
-//{
-//  Tensor<1,dim> return_value;
-//  double x = p(0);
-//  double y = p(1);
-//  return_value[0] = ...; // TODO
-//  return_value[1] = ...; // TODO
+template <int dim>
+Tensor<1,dim> SolutionValues<dim>::gradient (const Point<dim> &p,
+                                   const unsigned int /*component*/) const
+{
+  Tensor<1,dim> return_value;
+  double x = p(0);
+  double y = p(1);
+  return_value[0] = numbers::PI * cos(numbers::PI*x)*cos(numbers::PI*y); // TODO
+  return_value[1] = -1.0 * numbers::PI * sin(numbers::PI*x)*sin(numbers::PI*y); // TODO
 
-//  return return_value;
-//}
+  return return_value;
+}
 
 
 
@@ -286,9 +286,20 @@ void Step4<dim>::output_results (unsigned int cycle) const
   const double L2_error = difference_per_cell.l2_norm();
 
   // TODO: compute H1 error here
+  // First compute the H1 semi-norm
+  Vector<float> difference_per_cell_h1 (triangulation.n_active_cells());
+  VectorTools::integrate_difference (dof_handler,
+                                     solution,
+                                     SolutionValues<dim>(),
+                                     difference_per_cell_h1,
+                                     QGauss<dim>(fe.degree+2),
+                                     VectorTools::H1_norm);
+  const double H1_error = difference_per_cell_h1.l2_norm();
+
   
   std::cout << "  h= " << triangulation.begin_active()->diameter()
             << "  L2= " << L2_error
+            << "  H1= " << H1_error
             << std::endl;
 }
 
@@ -301,7 +312,7 @@ void Step4<dim>::run ()
   std::cout << "Solving problem in " << dim << " space dimensions." << std::endl;
 
   make_grid();
-  for (unsigned int cycle = 0; cycle < 5; ++cycle)
+  for (unsigned int cycle = 0; cycle < 3; ++cycle)
     {
       std::cout << "** Cycle " << cycle << std::endl;
       if (cycle>0)
@@ -324,10 +335,10 @@ int main ()
     laplace_problem_2d.run ();
   }
 
-//  {
-//    Step4<3> laplace_problem_3d;
-//    laplace_problem_3d.run ();
-//  }
+  //{
+  //  Step4<3> laplace_problem_3d;
+  //  laplace_problem_3d.run ();
+  //}
 
   return 0;
 }
