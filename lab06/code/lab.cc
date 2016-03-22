@@ -96,8 +96,9 @@ double RightHandSide<dim>::value (const Point<dim> &p,
   double x = p(0);
   double y = p(1);
   double r = sqrt(x*x+y*y);
-  double theta = atan2(x,y);
-  return -7.0*r*r*sin(3.0*theta);
+  double theta = atan2(y,x);
+  return -(sin(3 * theta) * (-((numbers::PI_2 * numbers::PI_2 * r * r + 5)
+                             * cos(numbers::PI_2 * r) + 5 * numbers::PI_2 * r * sin(numbers::PI_2 * r))));
 }
 
 
@@ -122,9 +123,9 @@ double SolutionValues<dim>::value (const Point<dim> &p,
   double x = p(0);
   double y = p(1);
   double r = sqrt(x*x+y*y);
-  double theta = atan2(x,y);
+  double theta = atan2(y,x);
   if (dim==2)
-    return r*r*r*r*sin(3.0*theta);
+    return r * r * sin(3.0*theta) * cos(r * numbers::PI_2);
   else
     return 0.0; // TODO
 }
@@ -137,11 +138,13 @@ Tensor<1,dim> SolutionValues<dim>::gradient (const Point<dim> &p,
   double x = p(0);
   double y = p(1);
   double r = sqrt(x*x+y*y);
-  double theta = atan2(x,y);
+  double theta = atan2(y,x);
   if (dim==2)
     {
-      return_value[0] = 0;
-      return_value[1] = 0;
+      return_value[0] = (0.5 * (-6 * y * cos(numbers::PI_2 * r) * cos(3 * theta) + 4 * x * cos(numbers::PI_2 * r)
+                                * sin(3 * theta) - numbers::PI * x * r * sin(numbers::PI_2 * r) * sin(3 * theta)));
+      return_value[1] = (0.5 * (6 * x * cos(numbers::PI_2 * r) * cos(3 * theta) + 4  * y * cos(numbers::PI_2 * r)
+                                * sin(3 * theta) - numbers::PI * y * r * sin(numbers::PI_2 * r) * sin(3 * theta)));
     }
   else
     {
@@ -269,7 +272,7 @@ void Step4<dim>::assemble_system ()
   VectorTools::interpolate_boundary_values (mapping,
                                             dof_handler,
                                             0,
-                                            SolutionValues<dim>(),
+                                            ZeroFunction<dim>(),
                                             boundary_values);
   MatrixTools::apply_boundary_values (boundary_values,
                                       system_matrix,
@@ -330,7 +333,7 @@ void Step4<dim>::output_results (unsigned int cycle) const
                                      difference_per_cell,
                                      QGauss<dim>(quad_degree+1),
                                      VectorTools::H1_norm);
-  const double H1_error = 0.0; //difference_per_cell.l2_norm();
+  const double H1_error = difference_per_cell.l2_norm();
 
   std::cout << "  h= " << triangulation.begin_active()->diameter()
                << "  L2= " << L2_error
