@@ -96,8 +96,8 @@ double RightHandSide<dim>::value (const Point<dim> &p,
   double x = p(0);
   double y = p(1);
   double r = sqrt(x*x+y*y);
-  double theta = atan2(x,y);
-  return -7.0*r*r*sin(3.0*theta);
+  double theta = atan2(y,x);
+  return 1.0;
 }
 
 
@@ -122,9 +122,9 @@ double SolutionValues<dim>::value (const Point<dim> &p,
   double x = p(0);
   double y = p(1);
   double r = sqrt(x*x+y*y);
-  double theta = atan2(x,y);
+  double theta = atan2(y,x);
   if (dim==2)
-    return r*r*r*r*sin(3.0*theta);
+    return r*r*sin(3.0*theta);
   else
     return 0.0; // TODO
 }
@@ -330,11 +330,11 @@ void Step4<dim>::output_results (unsigned int cycle) const
                                      difference_per_cell,
                                      QGauss<dim>(quad_degree+1),
                                      VectorTools::H1_norm);
-  const double H1_error = 0.0; //difference_per_cell.l2_norm();
+  const double H1_error = difference_per_cell.l2_norm();
 
   std::cout << "  h= " << triangulation.begin_active()->diameter()
                << "  L2= " << L2_error
-            << "  H1= " << H1_error
+            << "  H1= " // << H1_error
             << std::endl;
 }
 
