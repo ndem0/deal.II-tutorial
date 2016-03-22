@@ -1,4 +1,4 @@
-#  Lab XX - Error Computation
+#  Lab 05 - Error Computation
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 
@@ -9,12 +9,12 @@ and
 * * * * *
 
 1.  The topic of this lab session is a modified version of step-4 made
-    available for you as **lab-5**\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_4.html>
+    available for you
+    <https://www.dealii.org/8.4.0/doxygen/deal.II/step_4.html>
 
 2.  For more information about computing errors see step-7 (it is a bit
-    more complicated though)\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_7.html>
+    more complicated though)
+    <https://www.dealii.org/8.4.0/doxygen/deal.II/step_7.html>
 
 3.  Run the program and check the graphical and text output.
 

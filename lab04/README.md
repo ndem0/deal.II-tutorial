@@ -19,15 +19,15 @@ and
 3.  Use `VectorTools::compute_mean_value` (see step-3) and verify the
     convergence order of the mean in 2d and 3d.
 
-4.  Try to use the function GridTools::rotate in make_grid() to rotate the
-    mesh by 45 degrees (only in 2d!). Note that the function doesn't exist in
-    3d (hint: function specialization).
-
 4.  Go back to step-1 and visualize the surface of the Torus by creating
     a `Triangulation<2,3>` (2=dimension of the cells, 3=dimension of the
     space) using `GridGenerator::torus` if you haven't done so.
 
-5.  Change the mesh to an L-shape, only apply boundary values to the
+5.  Try to use the function GridTools::rotate in make_grid() to rotate the
+    mesh by 45 degrees (only in 2d!). Note that the function doesn't exist in
+    3d (hint: function specialization).
+
+6.  Change the mesh to an L-shape, only apply boundary values to the
     faces adjacent to the center (see `set_boundary_indicator()` in the
     step-3 description), change the boundary values to be $1+\|x\|_2$
     and the right-hand side to be 1. Finally, visualize your solutions

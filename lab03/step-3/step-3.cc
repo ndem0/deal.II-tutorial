@@ -52,6 +52,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <cmath>
+
 using namespace dealii;
 
 
@@ -89,7 +91,38 @@ Step3::Step3 ()
   dof_handler (triangulation)
 {}
 
+template <int dim>
+class BoundaryValues : public Function<dim>
+{
+public:
+  BoundaryValues () : Function<dim>() {}
 
+  virtual double value (const Point<dim>   &p,
+                        const unsigned int  component = 0) const;
+};
+
+
+
+#if 0
+template <int dim>
+double RightHandSide<dim>::value (const Point<dim> &p,
+                                  const unsigned int /*component*/) const
+{
+  double return_value = 0.0;
+  for (unsigned int i=0; i<dim; ++i)
+    return_value += 4.0 * std::pow(p(i), 4.0);
+
+  return return_value;
+}
+#endif
+
+
+template <int dim>
+double BoundaryValues<dim>::value (const Point<dim> &p,
+                                   const unsigned int /*component*/) const
+{
+  return 1 + sqrt( p.square() );
+}
 
 void Step3::make_grid ()
 {
@@ -174,7 +207,7 @@ void Step3::assemble_system ()
         }
       cell->get_dof_indices (local_dof_indices);
 
-      for(unsigned int i=0; i < cell_rhs.size(); ++i) cell_rhs(i) = 0.0;
+      for(unsigned int i=0; i < cell_rhs.size(); ++i) cell_rhs(i) = 1.0;
 
       for (unsigned int i=0; i<dofs_per_cell; ++i)
         for (unsigned int j=0; j<dofs_per_cell; ++j)
@@ -192,7 +225,7 @@ void Step3::assemble_system ()
 
   VectorTools::interpolate_boundary_values (dof_handler,
                                             1,
-                                            Functions::ExpFunction<2>(),
+                                            BoundaryValues<2>(),
                                             boundary_values);
 
 
