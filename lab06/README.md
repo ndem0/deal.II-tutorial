@@ -1,4 +1,4 @@
-#  Lab XX - Higher Order Mappings
+#  Lab 06 - Higher Order Mappings
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 
@@ -10,11 +10,11 @@ and
 
 
 1.  The topic of this lab session is a modified version of step-4 made
-    available for you as **lab-6**\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_4.html>
+    available for you
+    <https://www.dealii.org/8.4.0/doxygen/deal.II/step_4.html>
 
 2.  For more information in higher order mappings see step-10\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_10.html>
+    <https://www.dealii.org/8.4.0/doxygen/deal.II/step_10.html>
 
 3.  Run the program and check the graphical and text output.
 
