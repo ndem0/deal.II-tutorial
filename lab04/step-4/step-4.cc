@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  *
- * Copyright (C) 1999 - 2015 by the deal.II authors
+ * Copyright (C) 1999 - 2016 by the deal.II authors
  *
  * This file is part of the deal.II library.
  *
@@ -14,7 +14,7 @@
  * ---------------------------------------------------------------------
 
  *
- * Author: Timo Heister, based on step-4
+ * Author: Wolfgang Bangerth, University of Heidelberg, 1999
  */
 
 
@@ -60,7 +60,7 @@ private:
   void setup_system();
   void assemble_system ();
   void solve ();
-  void output_results (unsigned int cycle) const;
+  void output_results () const;
 
   Triangulation<dim>   triangulation;
   FE_Q<dim>            fe;
@@ -85,54 +85,41 @@ public:
                         const unsigned int  component = 0) const;
 };
 
+
+
+template <int dim>
+class BoundaryValues : public Function<dim>
+{
+public:
+  BoundaryValues () : Function<dim>() {}
+
+  virtual double value (const Point<dim>   &p,
+                        const unsigned int  component = 0) const;
+};
+
+
+
+
 template <int dim>
 double RightHandSide<dim>::value (const Point<dim> &p,
                                   const unsigned int /*component*/) const
 {
-  double x = p(0);
-  double y = p(1);
-  return x*y;
+  double return_value = 0.0;
+  for (unsigned int i=0; i<dim; ++i)
+    return_value += 4.0 * std::pow(p(i), 4.0);
+
+  return return_value;
 }
 
 
-
 template <int dim>
-class SolutionValues : public Function<dim>
-{
-public:
-  SolutionValues () : Function<dim>() {}
-
-  virtual double value (const Point<dim>   &p,
-                        const unsigned int  component = 0) const;
-
-//  virtual Tensor<1,dim> gradient (const Point<dim>   &p,
-//                                  const unsigned int  component = 0) const;
-};
-
-template <int dim>
-double SolutionValues<dim>::value (const Point<dim> &p,
+double BoundaryValues<dim>::value (const Point<dim> &p,
                                    const unsigned int /*component*/) const
 {
-  double x = p(0);
-  double y = p(1);
-  if (dim==2)
-    return sin(numbers::PI*x)*cos(numbers::PI*y);
-  else
-    return 0.0; // TODO
+  return p.square();
 }
 
-//template <int dim>
-//Tensor<1,dim> SolutionValues<dim>::gradient (const Point<dim> &p,
-//                                   const unsigned int /*component*/) const
-//{
-//  Tensor<1,dim> return_value;
-//  double x = p(0);
-//  double y = p(1);
-//  return_value[0] = ...; // TODO
-//  return_value[1] = ...; // TODO
 
-//  return return_value;
-//}
 
 
 
@@ -150,8 +137,15 @@ Step4<dim>::Step4 ()
 template <int dim>
 void Step4<dim>::make_grid ()
 {
-  GridGenerator::hyper_cube (triangulation, 0, 1);
-  triangulation.refine_global (3);
+  GridGenerator::hyper_cube (triangulation, -1, 1);
+  triangulation.refine_global (4);
+
+  std::cout << "   Number of active cells: "
+            << triangulation.n_active_cells()
+            << std::endl
+            << "   Total number of cells: "
+            << triangulation.n_cells()
+            << std::endl;
 }
 
 
@@ -179,7 +173,7 @@ void Step4<dim>::setup_system ()
 template <int dim>
 void Step4<dim>::assemble_system ()
 {
-  QGauss<dim>  quadrature_formula(fe.degree+1);
+  QGauss<dim>  quadrature_formula(2);
 
   const RightHandSide<dim> right_hand_side;
 
@@ -234,7 +228,7 @@ void Step4<dim>::assemble_system ()
   std::map<types::global_dof_index,double> boundary_values;
   VectorTools::interpolate_boundary_values (dof_handler,
                                             0,
-                                            SolutionValues<dim>(),
+                                            BoundaryValues<dim>(),
                                             boundary_values);
   MatrixTools::apply_boundary_values (boundary_values,
                                       system_matrix,
@@ -260,7 +254,7 @@ void Step4<dim>::solve ()
 
 
 template <int dim>
-void Step4<dim>::output_results (unsigned int cycle) const
+void Step4<dim>::output_results () const
 {
   DataOut<dim> data_out;
 
@@ -269,27 +263,10 @@ void Step4<dim>::output_results (unsigned int cycle) const
 
   data_out.build_patches ();
 
-  std::string filename = dim == 2 ?
-        "solution-2d-" :
-        "solution-3d-";
-  filename += Utilities::int_to_string(cycle,2) + ".vtk";
-  std::ofstream output (filename.c_str());
+  std::ofstream output (dim == 2 ?
+                        "solution-2d.vtk" :
+                        "solution-3d.vtk");
   data_out.write_vtk (output);
-
-  Vector<float> difference_per_cell (triangulation.n_active_cells());
-  VectorTools::integrate_difference (dof_handler,
-                                     solution,
-                                     SolutionValues<dim>(),
-                                     difference_per_cell,
-                                     QGauss<dim>(fe.degree+2),
-                                     VectorTools::L2_norm);
-  const double L2_error = difference_per_cell.l2_norm();
-
-  // TODO: compute H1 error here
-  
-  std::cout << "  h= " << triangulation.begin_active()->diameter()
-            << "  L2= " << L2_error
-            << std::endl;
 }
 
 
@@ -301,17 +278,10 @@ void Step4<dim>::run ()
   std::cout << "Solving problem in " << dim << " space dimensions." << std::endl;
 
   make_grid();
-  for (unsigned int cycle = 0; cycle < 5; ++cycle)
-    {
-      std::cout << "** Cycle " << cycle << std::endl;
-      if (cycle>0)
-        triangulation.refine_global(1);
-
-      setup_system ();
-      assemble_system ();
-      solve ();
-      output_results (cycle);
-    }
+  setup_system ();
+  assemble_system ();
+  solve ();
+  output_results ();
 }
 
 
@@ -324,10 +294,10 @@ int main ()
     laplace_problem_2d.run ();
   }
 
-//  {
-//    Step4<3> laplace_problem_3d;
-//    laplace_problem_3d.run ();
-//  }
+  {
+    Step4<3> laplace_problem_3d;
+    laplace_problem_3d.run ();
+  }
 
   return 0;
 }
