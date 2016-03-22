@@ -176,10 +176,27 @@ void helper(Triangulation<T> &triag)
     std::cout << "Number of active cells: " << triag.n_active_cells() << std::endl;
 }
 
+void fifth_grid ()
+{
+  Triangulation<2,3> triangulation;
+
+  const double inner_radius = 0.5,
+               outer_radius = 1.0;
+
+  GridGenerator::torus (triangulation, outer_radius, inner_radius);
+  triangulation.refine_global (4);
+
+  std::ofstream out ("grid-5.vtk");
+  GridOut grid_out;
+  grid_out.write_vtk (triangulation, out);
+  std::cout << "Grid written to grid-1.vtk" << std::endl;
+}
+
 int main ()
 {
   first_grid ();
   second_grid ();
   third_grid ();
   fourth_grid();
+  fifth_grid();
 }
