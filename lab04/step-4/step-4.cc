@@ -24,6 +24,7 @@
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria_accessor.h>
 #include <deal.II/grid/tria_iterator.h>
+#include <deal.II/grid/grid_tools.h>
 #include <deal.II/dofs/dof_accessor.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/dofs/dof_tools.h>
@@ -61,6 +62,7 @@ private:
   void assemble_system ();
   void solve ();
   void output_results () const;
+  void mesh_info();
 
   Triangulation<dim>   triangulation;
   FE_Q<dim>            fe;
@@ -146,6 +148,23 @@ void Step4<dim>::make_grid ()
             << "   Total number of cells: "
             << triangulation.n_cells()
             << std::endl;
+}
+
+template <>
+void Step4<2>::make_grid ()
+{
+  GridGenerator::hyper_cube (triangulation, -1, 1);
+  triangulation.refine_global (4);
+
+  std::cout << "   Number of active cells: "
+            << triangulation.n_active_cells()
+            << std::endl
+            << "   Total number of cells: "
+            << triangulation.n_cells()
+            << std::endl;
+
+  GridTools::rotate (45, triangulation);
+
 }
 
 
@@ -241,6 +260,9 @@ void Step4<dim>::assemble_system ()
 template <int dim>
 void Step4<dim>::solve ()
 {
+
+  QGauss<dim>  quadrature_formula(2);
+
   SolverControl           solver_control (1000, 1e-12);
   SolverCG<>              solver (solver_control);
   solver.solve (system_matrix, solution, system_rhs,
@@ -248,6 +270,11 @@ void Step4<dim>::solve ()
 
   std::cout << "   " << solver_control.last_step()
             << " CG iterations needed to obtain convergence."
+            << std::endl;
+
+
+  std::cout << "Mean value : " <<
+               VectorTools::compute_mean_value (this->dof_handler, quadrature_formula, solution, 0)
             << std::endl;
 }
 
@@ -282,9 +309,25 @@ void Step4<dim>::run ()
   assemble_system ();
   solve ();
   output_results ();
+  mesh_info ();
 }
 
 
+template <int dim>
+void Step4<dim>::mesh_info()
+{
+  std::cout << "Number of cells: " << this->triangulation.n_cells() << std::endl;
+  std::cout << "Number of active cells: " << this->triangulation.n_active_cells() << std::endl;
+  std::cout << "Number of vertices: " << this->triangulation.n_vertices() << std::endl;
+  std::cout << "Number of used vertices: " << this->triangulation.n_used_vertices() << std::endl;
+  std::cout << "Number of quads: " << this->triangulation.n_quads() << std::endl;
+  std::cout << "Number of active quads: " << this->triangulation.n_active_quads() << std::endl;
+
+  if(dim != 2)
+  {
+    std::cout << "Number of hex: " << this->triangulation.n_hexs() << std::endl;
+  }
+}
 
 int main ()
 {
