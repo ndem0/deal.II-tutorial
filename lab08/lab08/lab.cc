@@ -60,6 +60,7 @@ private:
   void setup_system();
   void assemble_system ();
   void solve ();
+  void refine_mesh ();
   void output_results (unsigned int cycle) const;
 
   Triangulation<dim>   triangulation;
@@ -91,9 +92,11 @@ double RightHandSide<dim>::value (const Point<dim> &p,
 {
   double x = p(0);
   double y = p(1);
-  // u=sin(numbers::PI*x)*cos(numbers::PI*y)
+  if (dim==2)
   return numbers::PI*numbers::PI*sin(numbers::PI*x)*cos(numbers::PI*y)
       + numbers::PI*numbers::PI*sin(numbers::PI*x)*cos(numbers::PI*y);
+  if (dim==3)
+    return 0.0; // TODO
 }
 
 
@@ -132,6 +135,8 @@ Tensor<1,dim> SolutionValues<dim>::gradient (const Point<dim> &p,
   double y = p(1);
   return_value[0] = numbers::PI*cos(numbers::PI*x)*cos(numbers::PI*y);
   return_value[1] = -numbers::PI*sin(numbers::PI*x)*sin(numbers::PI*y);
+
+	// TODO
 
   return return_value;
 }
@@ -251,8 +256,11 @@ void Step4<dim>::solve ()
 {
   SolverControl           solver_control (1000, 1e-12);
   SolverCG<>              solver (solver_control);
+  PreconditionSSOR<> preconditioner;
+  preconditioner.initialize(system_matrix);
+
   solver.solve (system_matrix, solution, system_rhs,
-                PreconditionIdentity());
+                preconditioner);
 
   std::cout << "   " << solver_control.last_step()
             << " CG iterations needed to obtain convergence."
@@ -295,14 +303,18 @@ void Step4<dim>::output_results (unsigned int cycle) const
                                      VectorTools::H1_norm);
   const double H1_error = difference_per_cell.l2_norm();
 
-  std::cout << "  h= " << triangulation.begin_active()->diameter()
+  std::cout << "  dofs= " << dof_handler.n_dofs()
             << "  L2= " << L2_error
-            << "  H1= " << H1_error
+//            << "  H1= " << H1_error
             << std::endl;
 }
 
 
-
+template <int dim>
+void Step4<dim>::refine_mesh ()
+{
+    triangulation.refine_global();
+}
 
 template <int dim>
 void Step4<dim>::run ()
@@ -314,7 +326,7 @@ void Step4<dim>::run ()
     {
       std::cout << "** Cycle " << cycle << std::endl;
       if (cycle>0)
-        triangulation.refine_global(1);
+        refine_mesh();
 
       setup_system ();
       assemble_system ();
