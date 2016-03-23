@@ -1,9 +1,12 @@
 Suggestions for master projects
 
-  - nonlinear PDE + error checking: parallel
-  - step 23 parallel
-  - step 26 parallel
-  - step 22 parallel
-  - set manifold IDs inside GridGenerator::* and document this
-
+  - step-40+error check (with manufactured solutions, and error tables)
+  - step-40+dominated transport+stabilization
+  - step-40+nonlinear diffusion
+  - step-38 with local refinement
+  - step-38 in parallel on torus
+  - step-38 with kink surface: geometry error estimator
+  - time dependent step-38 (modified heat equation, backward euler)
+  - generate mesh for rectangular domain minus naca, with manifold description, and solve potential equation and plot gradient + streamlines (using step-40)
+  - step-38 modification with K Crane article (Geodesics in Heat)
 
