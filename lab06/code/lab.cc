@@ -337,7 +337,7 @@ void Step4<dim>::output_results (unsigned int cycle) const
 
   std::cout << "  h= " << triangulation.begin_active()->diameter()
                << "  L2= " << L2_error
-            << "  H1= " << H1_error
+            << "  H1= " // << H1_error
             << std::endl;
 }
 
