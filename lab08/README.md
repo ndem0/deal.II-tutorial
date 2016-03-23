@@ -43,4 +43,4 @@ and
     b) adaptive refinement using a ``KellyEstimator`` like in step-6.
 
  7. Plot the two graphs in 4) in a log-log plot and include the line for a
-    quadratic rate (note that $h^2 = N^{-2/3}).
+    quadratic rate. Note that $h^2 = N^{-2/3}$.
