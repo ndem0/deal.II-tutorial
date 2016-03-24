@@ -1,4 +1,4 @@
-#  Lab XX - Systems of PDEs
+#  Lab XX - MPI
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 
@@ -8,6 +8,7 @@ and
 
 * * * * *
 
-systems of PDEs
+MPI
 
-what to do?
+- generate meshes as seen from each processor
+- 
