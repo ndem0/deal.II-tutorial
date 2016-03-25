@@ -43,6 +43,8 @@
 #include <deal.II/numerics/vector_tools.h>
 #include <deal.II/numerics/matrix_tools.h>
 
+#include <deal.II/grid/tria_boundary_lib.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -71,11 +73,15 @@ namespace Step38
     void output_results (unsigned int cycle) const;
     void compute_error () const;
 
+    double R = 1.0; // Outer radius of torus
+    double r = 0.6; // Inner radius of torus
+
 
     Triangulation<dim,spacedim>   triangulation;
     FE_Q<dim,spacedim>            fe;
     DoFHandler<dim,spacedim>      dof_handler;
     MappingQ<dim, spacedim>       mapping;
+    unsigned int                  quad_degree;
 
     SparsityPattern               sparsity_pattern;
     SparseMatrix<double>          system_matrix;
@@ -213,7 +219,8 @@ namespace Step38
     :
     fe (fe_degree),
     dof_handler(triangulation),
-    mapping (mapping_degree)
+    mapping (mapping_degree),
+    quad_degree(2*fe.degree)
   {}
 
 
@@ -221,18 +228,10 @@ namespace Step38
   template <int spacedim>
   void LaplaceBeltramiProblem<spacedim>::make_grid ()
   {
-    static SphericalManifold<dim,spacedim> surface_description;
+    static TorusBoundary<dim,spacedim> surface_description(R, r);
 
-    {
-      Triangulation<spacedim> volume_mesh;
-      GridGenerator::half_hyper_ball(volume_mesh);
+    GridGenerator::torus(triangulation, R, r);
 
-      std::set<types::boundary_id> boundary_ids;
-      boundary_ids.insert (0);
-
-      GridGenerator::extract_boundary_mesh (volume_mesh, triangulation,
-                                            boundary_ids);
-    }
     triangulation.set_all_manifold_ids(0);
     triangulation.set_manifold (0, surface_description);
 
@@ -262,6 +261,7 @@ namespace Step38
   void LaplaceBeltramiProblem<spacedim>::compute_area ()
   {
       const QGauss<dim>  quadrature_formula(2*fe.degree+2);
+      const unsigned int        n_q_points    = quadrature_formula.size();
       FEValues<dim,spacedim> fe_values (mapping, fe, quadrature_formula,
                                         update_values              |
                                         update_gradients           |
@@ -271,8 +271,19 @@ namespace Step38
       double area = 0.0;
       
       // TODO
+      for (typename DoFHandler<dim,spacedim>::active_cell_iterator
+           cell = dof_handler.begin_active(),
+           endc = dof_handler.end();
+           cell!=endc; ++cell)
+        {
 
-      double exact_area = 0.0;
+          fe_values.reinit (cell);
+
+          for (unsigned int q_point=0; q_point<n_q_points; ++q_point)
+            area += fe_values.JxW(q_point);
+        }
+
+      double exact_area = 4 * numbers::PI * numbers::PI * R * r;
       std::cout << "  area " << area << " error=" << area-exact_area << std::endl;
   }
 
@@ -282,7 +293,7 @@ namespace Step38
     system_matrix = 0;
     system_rhs = 0;
 
-    const QGauss<dim>  quadrature_formula(2*fe.degree);
+    const QGauss<dim>  quadrature_formula(quad_degree);
     FEValues<dim,spacedim> fe_values (mapping, fe, quadrature_formula,
                                       update_values              |
                                       update_gradients           |
@@ -356,6 +367,8 @@ namespace Step38
   template <int spacedim>
   void LaplaceBeltramiProblem<spacedim>::solve ()
   {
+    const QGauss<dim>  quadrature_formula(2*fe.degree+2);
+
     SolverControl solver_control (solution.size(),
                                   1e-7 * system_rhs.l2_norm());
     SolverCG<>    cg (solver_control);
@@ -365,6 +378,13 @@ namespace Step38
 
     cg.solve (system_matrix, solution, system_rhs,
               preconditioner);
+
+    VectorTools::compute_mean_value (dof_handler,
+                                     quadrature_formula,
+                                     solution,
+                                     0);
+    solution.add(-mean);
+
   }
 
 
@@ -396,11 +416,30 @@ namespace Step38
   {
     // TODO
 
-    double l2_error = 0.0;
-    double h1_error = 0.0;
+    //double l2_error = 0.0;
+    //double h1_error = 0.0;
     
     
     double h = GridTools::minimal_cell_diameter(triangulation);
+
+    Vector<double> difference_per_cell (triangulation.n_active_cells());
+    VectorTools::integrate_difference (mapping,
+                                       dof_handler,
+                                       solution,
+                                       Solution<spacedim>(),
+                                       difference_per_cell,
+                                       QGauss<dim>(quad_degree+1),
+                                       VectorTools::L2_norm);
+    const double l2_error = difference_per_cell.l2_norm();
+
+    VectorTools::integrate_difference (mapping,
+                                       dof_handler,
+                                       solution,
+                                       Solution<spacedim>(),
+                                       difference_per_cell,
+                                       QGauss<dim>(quad_degree+1),
+                                       VectorTools::H1_norm);
+    const double h1_error = difference_per_cell.l2_norm();
 
     std::cout << "  h = " << h
               << "  L2 error = " << l2_error

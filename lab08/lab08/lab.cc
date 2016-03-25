@@ -24,7 +24,6 @@
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria_accessor.h>
 #include <deal.II/grid/tria_iterator.h>
-#include <deal.II/grid/grid_out.h>
 #include <deal.II/dofs/dof_accessor.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/dofs/dof_tools.h>
@@ -39,7 +38,6 @@
 #include <deal.II/lac/dynamic_sparsity_pattern.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/precondition.h>
-#include <deal.II/grid/manifold_lib.h>
 
 #include <deal.II/numerics/data_out.h>
 #include <fstream>
@@ -62,12 +60,11 @@ private:
   void setup_system();
   void assemble_system ();
   void solve ();
+  void refine_mesh ();
   void output_results (unsigned int cycle) const;
 
   Triangulation<dim>   triangulation;
   FE_Q<dim>            fe;
-  MappingQ<dim>        mapping;
-  unsigned int quad_degree;
   DoFHandler<dim>      dof_handler;
 
   SparsityPattern      sparsity_pattern;
@@ -95,10 +92,11 @@ double RightHandSide<dim>::value (const Point<dim> &p,
 {
   double x = p(0);
   double y = p(1);
-  double r = sqrt(x*x+y*y);
-  double theta = atan2(y,x);
-  return -(sin(3 * theta) * (-((numbers::PI_2 * numbers::PI_2 * r * r + 5)
-                             * cos(numbers::PI_2 * r) + 5 * numbers::PI_2 * r * sin(numbers::PI_2 * r))));
+  if (dim==2)
+  return numbers::PI*numbers::PI*sin(numbers::PI*x)*cos(numbers::PI*y)
+      + numbers::PI*numbers::PI*sin(numbers::PI*x)*cos(numbers::PI*y);
+  if (dim==3)
+    return 0.0; // TODO
 }
 
 
@@ -122,10 +120,8 @@ double SolutionValues<dim>::value (const Point<dim> &p,
 {
   double x = p(0);
   double y = p(1);
-  double r = sqrt(x*x+y*y);
-  double theta = atan2(y,x);
   if (dim==2)
-    return r * r * sin(3.0*theta) * cos(r * numbers::PI_2);
+    return sin(numbers::PI*x)*cos(numbers::PI*y);
   else
     return 0.0; // TODO
 }
@@ -137,19 +133,10 @@ Tensor<1,dim> SolutionValues<dim>::gradient (const Point<dim> &p,
   Tensor<1,dim> return_value;
   double x = p(0);
   double y = p(1);
-  double r = sqrt(x*x+y*y);
-  double theta = atan2(y,x);
-  if (dim==2)
-    {
-      return_value[0] = (0.5 * (-6 * y * cos(numbers::PI_2 * r) * cos(3 * theta) + 4 * x * cos(numbers::PI_2 * r)
-                                * sin(3 * theta) - numbers::PI * x * r * sin(numbers::PI_2 * r) * sin(3 * theta)));
-      return_value[1] = (0.5 * (6 * x * cos(numbers::PI_2 * r) * cos(3 * theta) + 4  * y * cos(numbers::PI_2 * r)
-                                * sin(3 * theta) - numbers::PI * y * r * sin(numbers::PI_2 * r) * sin(3 * theta)));
-    }
-  else
-    {
-      // TODO
-    }
+  return_value[0] = numbers::PI*cos(numbers::PI*x)*cos(numbers::PI*y);
+  return_value[1] = -numbers::PI*sin(numbers::PI*x)*sin(numbers::PI*y);
+
+	// TODO
 
   return return_value;
 }
@@ -161,9 +148,7 @@ Tensor<1,dim> SolutionValues<dim>::gradient (const Point<dim> &p,
 template <int dim>
 Step4<dim>::Step4 ()
   :
-  fe (2),
-  mapping (1),
-  quad_degree(2*fe.degree+2),
+  fe (1),
   dof_handler (triangulation)
 {}
 
@@ -172,23 +157,8 @@ Step4<dim>::Step4 ()
 template <int dim>
 void Step4<dim>::make_grid ()
 {
-  Point<dim> center;
-  GridGenerator::hyper_ball (triangulation, center);
-  //triangulation.set_all_manifold_ids(0);
-  triangulation.set_all_manifold_ids_on_boundary(0);
-
-  if (0)
-    {
-      typename Triangulation<dim>::active_cell_iterator cell =
-          triangulation.begin_active();
-      for (;cell!=triangulation.end();++cell)
-        if (cell->center().square()<1e-3)
-          cell->set_all_manifold_ids(1);
-    }
-
-  static SphericalManifold<dim> manifold_description(center);
-  triangulation.set_manifold(0, manifold_description);
-  triangulation.refine_global (1);
+  GridGenerator::hyper_cube (triangulation, 0, 1);
+  triangulation.refine_global (3);
 }
 
 
@@ -216,11 +186,11 @@ void Step4<dim>::setup_system ()
 template <int dim>
 void Step4<dim>::assemble_system ()
 {
-  QGauss<dim>  quadrature_formula(quad_degree);
+  QGauss<dim>  quadrature_formula(fe.degree+1);
 
   const RightHandSide<dim> right_hand_side;
 
-  FEValues<dim> fe_values (mapping, fe, quadrature_formula,
+  FEValues<dim> fe_values (fe, quadrature_formula,
                            update_values   | update_gradients |
                            update_quadrature_points | update_JxW_values);
 
@@ -269,10 +239,9 @@ void Step4<dim>::assemble_system ()
 
 
   std::map<types::global_dof_index,double> boundary_values;
-  VectorTools::interpolate_boundary_values (mapping,
-                                            dof_handler,
+  VectorTools::interpolate_boundary_values (dof_handler,
                                             0,
-                                            ZeroFunction<dim>(),
+                                            SolutionValues<dim>(),
                                             boundary_values);
   MatrixTools::apply_boundary_values (boundary_values,
                                       system_matrix,
@@ -285,12 +254,13 @@ void Step4<dim>::assemble_system ()
 template <int dim>
 void Step4<dim>::solve ()
 {
-  SolverControl           solver_control (2000, 1e-12);
+  SolverControl           solver_control (1000, 1e-12);
   SolverCG<>              solver (solver_control);
-  PreconditionSSOR<SparseMatrix<double> > prec;
-  prec.initialize(system_matrix);
+  PreconditionSSOR<> preconditioner;
+  preconditioner.initialize(system_matrix);
+
   solver.solve (system_matrix, solution, system_rhs,
-                prec);
+                preconditioner);
 
   std::cout << "   " << solver_control.last_step()
             << " CG iterations needed to obtain convergence."
@@ -317,32 +287,34 @@ void Step4<dim>::output_results (unsigned int cycle) const
   data_out.write_vtk (output);
 
   Vector<float> difference_per_cell (triangulation.n_active_cells());
-  VectorTools::integrate_difference (mapping,
-                                     dof_handler,
+  VectorTools::integrate_difference (dof_handler,
                                      solution,
                                      SolutionValues<dim>(),
                                      difference_per_cell,
-                                     QGauss<dim>(quad_degree+1),
+                                     QGauss<dim>(fe.degree+2),
                                      VectorTools::L2_norm);
   const double L2_error = difference_per_cell.l2_norm();
 
-  VectorTools::integrate_difference (mapping,
-                                     dof_handler,
+  VectorTools::integrate_difference (dof_handler,
                                      solution,
                                      SolutionValues<dim>(),
                                      difference_per_cell,
-                                     QGauss<dim>(quad_degree+1),
+                                     QGauss<dim>(fe.degree+2),
                                      VectorTools::H1_norm);
   const double H1_error = difference_per_cell.l2_norm();
 
-  std::cout << "  h= " << triangulation.begin_active()->diameter()
-               << "  L2= " << L2_error
-            << "  H1= " // << H1_error
+  std::cout << "  dofs= " << dof_handler.n_dofs()
+            << "  L2= " << L2_error
+//            << "  H1= " << H1_error
             << std::endl;
 }
 
 
-
+template <int dim>
+void Step4<dim>::refine_mesh ()
+{
+    triangulation.refine_global();
+}
 
 template <int dim>
 void Step4<dim>::run ()
@@ -350,11 +322,11 @@ void Step4<dim>::run ()
   std::cout << "Solving problem in " << dim << " space dimensions." << std::endl;
 
   make_grid();
-  for (unsigned int cycle = 0; cycle < 6; ++cycle)
+  for (unsigned int cycle = 0; cycle < 5; ++cycle)
     {
       std::cout << "** Cycle " << cycle << std::endl;
       if (cycle>0)
-        triangulation.refine_global(1);
+        refine_mesh();
 
       setup_system ();
       assemble_system ();
@@ -364,8 +336,10 @@ void Step4<dim>::run ()
 }
 
 
+
 int main ()
 {
+  deallog.depth_console (0);
   {
     Step4<2> laplace_problem_2d;
     laplace_problem_2d.run ();

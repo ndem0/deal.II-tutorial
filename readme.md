@@ -32,3 +32,14 @@ in the morning.
 
 
 .. _P2.5_The_Finite_Element_Method_Using_deal.II : http://elearn.mhpc.it/moodle/course/view.php?id=39
+
+Running deal.II on Ulysses
+==========================
+
+If you have access to Uylsses, you can add the following to your `.bashrc`:
+
+	. /home/mathlab/gnu.conf
+
+This will export all libraries required by `deal.II`, and the latest (development git) version of `deal.II`.
+
+

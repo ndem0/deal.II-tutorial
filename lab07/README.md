@@ -1,4 +1,4 @@
-#  Lab XX - Manifolds (step-38+)
+#  Lab 07 - Manifolds (step-38+)
 ## Deal.II Users and Developers Training 
 ### SMR2909 - MHPC P2.5
 
@@ -11,7 +11,7 @@ and
 
 1.  The topic of this lab session is a modified version of step-38 made
     available for you as **lab-7**\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_38.html>
+    <https://www.dealii.org/8.4.0/doxygen/deal.II/step_38.html>
 
 2.  Run the program and check the graphical and text output.
 
@@ -26,19 +26,8 @@ and
     is converging to the correct value and that a higher order mapping
     helps.
 
+
 5.  Switch the mesh to a torus with R=1.0 and r=0.6 and check that the
-    area is converging correctly.
-
-
-
-
-
-1.  The goal of this lab session is to modify **lab-7** to solve a
-    problem defined on the surface of the torus. This program is a
-    modified version of step-38\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_38.html>
-
-2.  Switch the mesh to a torus with R=1.0 and r=0.6 and check that the
     area is converging correctly. See `GridGenerator::torus()` and the
     class `TorusBoundary` with constructor
 
@@ -51,7 +40,7 @@ and
     Finally: open up the solutions and check that the torus is refined
     correctly.
 
-3.  Without a boundary, the problem is not uniquely solvable, so we add
+6.  Without a boundary, the problem is not uniquely solvable, so we add
     the constraint $\int_\Omega u = 0$. We need to make sure our
     analytic solution and our discrete solution satisfy this. Compute
     the mean value using
@@ -74,7 +63,7 @@ and
     Note: how come the linear solver converges even though the linear
     system is singular?
 
-4.  Open `surfacelaplacian_torus.mw` in maple and find the right-hand
+4.  Open `labs/misc/surfacelaplacian_torus.mw` in maple and find the right-hand
     side $f$ that belongs to the solution
     $$u = \sin(3\phi)\cos(3\theta+\phi)$$ that you can plug into the
     code (`Solution<3>::value`) as:
@@ -103,30 +92,5 @@ and
 
 
 
-1.  The goal of this lab session is to modify **lab-9** to solve a
-    problem defined on the surface with a kink. This program is a
-    modified version of step-38\
-    <https://www.dealii.org/developer/doxygen/deal.II/step_38.html>
-
-2.  Implement the manifold for the surface $$\chi(x,y) = (x,y,z(x,y))$$
-    with $$z(x,y) = \max(0, 3/4-x^2-y^2)^{1+\alpha}$$ where
-    $\alpha=\frac{3}{2}$ (or later $\alpha=\frac{2}{5}$) in the class
-    `KinkedManifold` and use this manifold on the surface $[-1,1]^2$ in
-    `make_grid()`. Start with one global refinement. Check visually,
-    that the surface is refined correctly.
-
-3.  Implement the right-hand side, boundary conditions, and reference
-    solution from the maple spreadsheet
-    `surfacelaplacian_nonsmoothgraph.mw`
-
-4.  Check $L^2$ convergence. You might need a tighter linear solver
-    tolerance to see convergence on fine meshes.
-
-5.  Bonus: implement the gradient from the spreadsheet and check $H^1$
-    errors.
-
-6.  Bonus: implement and check the version with $\alpha=\frac{2}{5}$.
-
-7.  Bonus: implement adaptive refinement.
 
 
