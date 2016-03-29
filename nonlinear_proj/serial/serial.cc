@@ -603,10 +603,11 @@ namespace Step15
                                              fe_values.shape_value(i,q_point)
                                           )
                                          )
-                                         *   fe_values.JxW(q_point)
-                                         -   
-                                             cell_rhs(i);
+                                         *   fe_values.JxW(q_point);
                   }
+
+                cell_residual(i) -= cell_rhs(i);
+
               }
           }
 
