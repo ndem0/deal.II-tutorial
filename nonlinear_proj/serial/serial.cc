@@ -149,7 +149,9 @@ namespace Step15
   {
     double x = p(0);
     double y = p(1);
-    return 2.0 * numbers::PI * numbers::PI * sin(numbers::PI*x) * cos(numbers::PI*y);
+    return 8.0 * numbers::PI * numbers::PI * sin(2 * numbers::PI * (x+y))
+                 - 4 * numbers::PI * sin(2 * numbers::PI * (x+y)) * 
+                            cos(2 * numbers::PI * (x+y));
 
   } 
   
@@ -173,7 +175,10 @@ namespace Step15
   double BoundaryValues<dim>::value (const Point<dim> &p,
                                      const unsigned int /*component*/) const
   {
-    return std::sin(2 * numbers::PI * (p[0]+p[1]));
+    double x = p(0);
+    double y = p(1);
+    //return 0.0;                            // Zero boundary condition  
+    return sin(2 * numbers::PI * (x+y));   // Function at the boundary for bound values
   }
 
   // @sect3{The <code>MinimalSurfaceProblem</code> class implementation}
