@@ -543,7 +543,7 @@ namespace Step15
     const unsigned int           n_q_points    = quadrature_formula.size();
 
     Vector<double>               cell_residual (dofs_per_cell);
-    Vector<double>               residual (dofs_per_cell);
+    Vector<double>               residual (dof_handler.n_dofs());
     Vector<double>               cell_rhs (dofs_per_cell);
     
     std::vector<double>          solution_values(n_q_points);
@@ -560,6 +560,7 @@ namespace Step15
     for (; cell!=endc; ++cell)
       {
         cell_residual = 0;
+        cell_rhs      = 0;  
 
         fe_values.reinit (cell);
 
@@ -578,6 +579,7 @@ namespace Step15
                 cell_rhs(i) += (right_hand_side.value (fe_values.quadrature_point (q_point)) *
                                  fe_values.shape_value(i,q_point) *
                                  fe_values.JxW(q_point));
+
                 for (unsigned int j=0; j<dofs_per_cell; ++j)
                   {
                     vec_u[0] = fe_values.shape_value(j, q_point);
