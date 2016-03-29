@@ -261,6 +261,7 @@ namespace Step15
     const QGauss<dim>  quadrature_formula(3);
     FEValues<dim> fe_values (fe, quadrature_formula,
                              update_gradients         |
+                             update_values            |
                              update_quadrature_points |
                              update_JxW_values);
 
@@ -530,6 +531,7 @@ namespace Step15
     const QGauss<dim>  quadrature_formula(3);
     FEValues<dim> fe_values (fe, quadrature_formula,
                              update_gradients         |
+                             update_values            |
                              update_quadrature_points |
                              update_JxW_values);
 
